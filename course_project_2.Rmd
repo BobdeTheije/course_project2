@@ -19,7 +19,13 @@ The basic goal of this study is to explore the NOAA Storm Database and answer th
 ## Data Processing
 The data come in the form of a comma-separated-value file compressed via the bzip2 algorithm to reduce its size.
 
-```{r}
+### Loading librarys needed
+```{r,warning=FALSE,message=FALSE}
+library(dplyr)
+library(ggplot2)
+```
+### download file and read data
+```{r cache = TRUE}
 fileUrl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
 # download file if not already in Wd
 if(!file.exists("repdata%2Fdata%2FStormData.csv.bz2"))
@@ -32,3 +38,8 @@ if (!exists("storm_data"))
 {
     storm_data<-read.csv("stormdata.bz2", head=TRUE)
 }
+```
+### subsetting the data
+```{r}
+sub_storm_data <- select(storm_data, c("STATE__","COUNTYNAME", "BGN_DATE", "EVTYPE","FATALITIES","INJURIES","PROPDMG", "PROPDMGEXP","CROPDMG", "CROPDMGEXP"))
+```
