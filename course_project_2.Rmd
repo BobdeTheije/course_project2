@@ -23,6 +23,7 @@ The data come in the form of a comma-separated-value file compressed via the bzi
 ```{r,warning=FALSE,message=FALSE}
 library(dplyr)
 library(ggplot2)
+library(stringr)
 ```
 ### download file and read data
 ```{r cache = TRUE}
@@ -40,12 +41,45 @@ if (!exists("storm_data"))
 }
 ```
 ### subsetting the data
+only select the attributes relevant to the questions to be answered.
+1. which types of events are most harmful with respect to population health?
+EVTYPE
+FATALITIES
+INJURIES
+2. which types of events have the greatest economic consequences?
+EVTYPE
+PROPDMG
+PROPDMGEXP
+CROPDMG
+CROPDMGEXP
+  
 ```{r}
-sub_storm_data <- select(storm_data, c("STATE__","COUNTYNAME", "BGN_DATE", "EVTYPE","FATALITIES","INJURIES","PROPDMG", "PROPDMGEXP","CROPDMG", "CROPDMGEXP"))
+sub_storm_data <- select(storm_data, c("EVTYPE","FATALITIES","INJURIES","PROPDMG", "PROPDMGEXP","CROPDMG", "CROPDMGEXP"))
 ```
 
 ### check for null values
 ```{r}
-if (mean(is.na(sub_storm_data$STATE__)) + mean(is.na(sub_storm_data$COUNTYNAME)) + mean(is.na(sub_storm_data$BGN_DATE)) + mean(is.na(sub_storm_data$EVTYPE)) + mean(is.na(sub_storm_data$FATALITIES)) + mean(is.na(sub_storm_data$INJURIES)) + mean(is.na(sub_storm_data$PROPDMG)) + mean(is.na(sub_storm_data$PROPDMGEXP)) + mean(is.na(sub_storm_data$CROPDMG)) + mean(is.na(sub_storm_data$CROPDMGEXP)) > 0)
+if (mean(is.na(sub_storm_data$EVTYPE)) + mean(is.na(sub_storm_data$FATALITIES)) + mean(is.na(sub_storm_data$INJURIES)) + mean(is.na(sub_storm_data$PROPDMG)) + mean(is.na(sub_storm_data$PROPDMGEXP)) + mean(is.na(sub_storm_data$CROPDMG)) + mean(is.na(sub_storm_data$CROPDMGEXP)) > 0)
     print("missing values present") else print("no missing values")
 ```
+
+### Check the event types
+```{r}
+EVTYPEC <- count(sub_storm_data, EVTYPE)
+arrange(EVTYPEC, desc(n))
+```
+
+### cluster events
+We see that there are events that look the same
+f.i. TSTM WIND, THUNDERSTORM WIND, THUNDERSTORM WINDS and HIGH WIND
+or all kinds of FLOOD
+```{r}
+sub_storm_data <- mutate(sub_storm_data, 
+                         EVENT = case_when (str_detect(str_to_lower(EVTYPE), "wind")                                                  ~ "WIND",
+                                            str_detect(str_to_lower(EVTYPE), "flood")                                                  ~ "FLOOD",
+                                            TRUE ~ as.character(EVTYPE)
+                         ))
+
+
+```
+
