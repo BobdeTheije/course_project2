@@ -13,7 +13,9 @@ knitr::opts_chunk$set(echo = TRUE)
 Storms and other severe weather events can cause both public health and economic problems for communities and municipalities. Many severe events can result in fatalities, injuries, and property damage, and preventing such outcomes to the extent possible is a key concern.
 This project involves exploring the U.S. National Oceanic and Atmospheric Administration's (NOAA) storm database. This database tracks characteristics of major storms and weather events in the United States, including when and where they occur, as well as estimates of any fatalities, injuries, and property damage.
 The basic goal of this study is to explore the NOAA Storm Database and answer the following questions about severe weather events:
+
 1. Across the United States, which types of events are most harmful with respect to population health?
+
 2. Across the United States, which types of events have the greatest economic consequences?
 
 ## Data Processing
@@ -29,7 +31,7 @@ library(stringr)
 ```{r cache = TRUE}
 fileUrl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
 # download file if not already in Wd
-if(!file.exists("repdata%2Fdata%2FStormData.csv.bz2"))
+if(!file.exists("stormdata.bz2"))
 {
   download.file(fileUrl, "stormdata.bz2")
 }
@@ -43,15 +45,25 @@ if (!exists("storm_data"))
 ### subsetting the data
 only select the attributes relevant to the questions to be answered.
 1. which types of events are most harmful with respect to population health?
+
 EVTYPE
+
 FATALITIES
+
 INJURIES
+
 2. which types of events have the greatest economic consequences?
+
 EVTYPE
+
 PROPDMG
+
 PROPDMGEXP
+
 CROPDMG
+
 CROPDMGEXP
+
   
 ```{r}
 sub_storm_data <- select(storm_data, c("EVTYPE","FATALITIES","INJURIES","PROPDMG", "PROPDMGEXP","CROPDMG", "CROPDMGEXP"))
@@ -75,11 +87,54 @@ f.i. TSTM WIND, THUNDERSTORM WIND, THUNDERSTORM WINDS and HIGH WIND
 or all kinds of FLOOD
 ```{r}
 sub_storm_data <- mutate(sub_storm_data, 
-                         EVENT = case_when (str_detect(str_to_lower(EVTYPE), "wind")                                                  ~ "WIND",
-                                            str_detect(str_to_lower(EVTYPE), "flood")                                                  ~ "FLOOD",
+                         EVENT = case_when (str_detect(str_to_lower(EVTYPE), "wind")   ~ "WIND",
+                                            str_detect(str_to_lower(EVTYPE), "flood")  ~ "FLOOD",
                                             TRUE ~ as.character(EVTYPE)
                          ))
 
 
 ```
+
+### check the units of dollars in de EXP columns
+```{r}
+sort(table(sub_storm_data$PROPDMGEXP), decreasing = TRUE)
+sort(table(sub_storm_data$CROPDMGEXP), decreasing = TRUE)
+```
+There is some mess in units, so we transform those variables in one unit (dollar) variable by the following rule:
+
+* K or k: thousand dollars (10^3)
+
+* M or m: million dollars (10^6)
+
+* B or b: billion dollars (10^9)
+
+the rest would be consider as dollars
+
+```{r}
+sub_storm_data <- mutate(sub_storm_data, 
+                         PROPDAMAGE = case_when (str_detect(str_to_lower(PROPDMGEXP), "k") ~ PROPDMG*1000 ,
+                                            str_detect(str_to_lower(PROPDMGEXP), "m")      ~ PROPDMG*1000000,
+                                            str_detect(str_to_lower(PROPDMGEXP), "b")      ~ PROPDMG*1000000000,
+                                            TRUE ~ PROPDMG
+                         ))
+
+
+sub_storm_data <- mutate(sub_storm_data, 
+                         CROPDAMAGE = case_when (str_detect(str_to_lower(CROPDMGEXP), "k") ~ CROPDMG*1000 ,
+                                            str_detect(str_to_lower(CROPDMGEXP), "m")      ~ CROPDMG*1000000,
+                                            str_detect(str_to_lower(CROPDMGEXP), "b")      ~ CROPDMG*1000000000,
+                                            TRUE ~ CROPDMG
+                         ))
+```
+
+check to see if the mutution makes sense
+```{r}
+head(sub_storm_data[sub_storm_data$PROPDMG > 0,c("PROPDMG", "PROPDMGEXP", "PROPDAMAGE")])
+head(sub_storm_data[sub_storm_data$CROPDMG > 0,c("CROPDMG", "CROPDMGEXP", "CROPDAMAGE")])
+```
+
+
+## RESULTS
+
+
 
