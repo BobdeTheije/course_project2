@@ -127,7 +127,7 @@ sub_storm_data <- mutate(sub_storm_data,
                          ))
 ```
 
-check to see if the mutution makes sense
+check to see if the mutation makes sense
 ```{r}
 head(sub_storm_data[sub_storm_data$PROPDMG > 0,c("PROPDMG", "PROPDMGEXP", "PROPDAMAGE")])
 head(sub_storm_data[sub_storm_data$CROPDMG > 0,c("CROPDMG", "CROPDMGEXP", "CROPDAMAGE")])
