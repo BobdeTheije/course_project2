@@ -44,6 +44,7 @@ if (!exists("storm_data"))
 ```
 ### subsetting the data
 only select the attributes relevant to the questions to be answered.
+
 1. which types of events are most harmful with respect to population health?
 
 EVTYPE
@@ -136,5 +137,21 @@ head(sub_storm_data[sub_storm_data$CROPDMG > 0,c("CROPDMG", "CROPDMGEXP", "CROPD
 
 ## RESULTS
 
+### Across the US which types of events are most harmfull with respect to population health
+
+```{r}
+event_fatalities <- group_by(sub_storm_data, EVENT) %>% summarise(sum_fatalities = sum(FATALITIES)) %>% arrange(desc(sum_fatalities))
+event_injuries <- group_by(sub_storm_data, EVENT) %>% summarise(sum_injuries = sum(INJURIES)) %>% arrange(desc(sum_injuries))
+```
+
+Top 10 Events causing fatalities:
+```{r}
+head(event_fatalities, 10)
+```
+
+Top 10 Events causing injuries:
+```{r}
+head(event_injuries, 10)
+```
 
 
