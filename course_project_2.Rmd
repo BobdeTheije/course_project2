@@ -126,6 +126,7 @@ sub_storm_data <- mutate(sub_storm_data,
                                             str_detect(str_to_lower(CROPDMGEXP), "b")      ~ CROPDMG*1000000000,
                                             TRUE ~ CROPDMG
                          ))
+sub_storm_data <- mutate(sub_storm_data, TOTDAMAGE = PROPDAMAGE + CROPDAMAGE)
 ```
 
 check to see if the mutation makes sense
@@ -135,23 +136,31 @@ head(sub_storm_data[sub_storm_data$CROPDMG > 0,c("CROPDMG", "CROPDMGEXP", "CROPD
 ```
 
 
-## RESULTS
+# RESULTS
 
-### Across the US which types of events are most harmfull with respect to population health
+## Across the United States which types of events are most harmfull with respect to population health.
 
 ```{r}
-event_fatalities <- group_by(sub_storm_data, EVENT) %>% summarise(sum_fatalities = sum(FATALITIES)) %>% arrange(desc(sum_fatalities))
-event_injuries <- group_by(sub_storm_data, EVENT) %>% summarise(sum_injuries = sum(INJURIES)) %>% arrange(desc(sum_injuries))
+event_fatalities_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(sum_fatalities = sum(FATALITIES)) %>% arrange(desc(sum_fatalities)) %>% head(10)
+event_injuries_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(sum_injuries = sum(INJURIES)) %>% arrange(desc(sum_injuries)) %>% head(10)
 ```
 
-Top 10 Events causing fatalities:
+### Top 10 Events causing fatalities or injuries
+
 ```{r}
-head(event_fatalities, 10)
+par(mfrow = c(2,1))
+ggplot(event_fatalities_top10) + geom_col(aes(EVENT, sum_fatalities, fill = EVENT))
+ggplot(event_injuries_top10) + geom_col(aes(EVENT, sum_injuries, fill = EVENT))
 ```
 
-Top 10 Events causing injuries:
+It's obvious that Tornado's are most harmfull with respect to population health.
+
+## Across the United States, which types of events have the greatest economic consequences.
+
 ```{r}
-head(event_injuries, 10)
+event_damage_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(total_damage = sum(TOTDAMAGE)
+                                                                    , crop_damage = sum(CROPDAMAGE)
+                                                                    , property_damage = sum(PROPDAMAGE))  %>% 
+                    arrange(desc(total_damage)) %>% head(10) 
+    
 ```
-
-
