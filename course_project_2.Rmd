@@ -26,11 +26,14 @@ The data come in the form of a comma-separated-value file compressed via the bzi
 library(dplyr)
 library(ggplot2)
 library(stringr)
+library(reshape2)
 ```
 ### download file and read data
 ```{r cache = TRUE}
 fileUrl <- "https://d396qusza40orc.cloudfront.net/repdata%2Fdata%2FStormData.csv.bz2"
 # download file if not already in Wd
+setwd("c:/Users/Bob/Documents/coursera/data")
+
 if(!file.exists("stormdata.bz2"))
 {
   download.file(fileUrl, "stormdata.bz2")
@@ -158,9 +161,35 @@ It's obvious that Tornado's are most harmfull with respect to population health.
 ## Across the United States, which types of events have the greatest economic consequences.
 
 ```{r}
-event_damage_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(total_damage = sum(TOTDAMAGE)
+event_crop_damage_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(crop_damage = sum(CROPDAMAGE))  %>% 
+                    arrange(desc(crop_damage)) %>% head(10) 
+
+event_property_damage_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(property_damage = sum(PROPDAMAGE))  %>% 
+                    arrange(desc(property_damage)) %>% head(10) 
+
+
+event_total_damage_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(total_damage = sum(TOTDAMAGE)
                                                                     , crop_damage = sum(CROPDAMAGE)
                                                                     , property_damage = sum(PROPDAMAGE))  %>% 
                     arrange(desc(total_damage)) %>% head(10) 
+
+print(event_crop_damage_top10)
+print(event_property_damage_top10)
+print(event_total_damage_top10)
     
 ```
+
+```{r}
+event_total_damage <- melt(event_total_damage_top10, id.vars="EVENT")
+g <- ggplot(event_total_damage, aes(x=reorder(EVENT, -value), y=value))
+g <- g + geom_bar(stat="identity", aes(fill=variable), position=position_dodge())
+g <- g + ylab("Damage($)") 
+g <- g + xlab("Event Type") 
+g <- g + theme(axis.text.x = element_text(angle=45, hjust=1))
+g <- g + ggtitle("Top 10 eventypes for economical damage")
+print(g)
+
+```
+
+
+
