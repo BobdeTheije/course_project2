@@ -1,7 +1,7 @@
 ---
 title: "Economical and health consequences of severe weather events"
 author: "Bob de Theije"
-date: "August 1, 2018"
+date: "October 30, 2018"
 output: html_document
 ---
 
@@ -148,42 +148,67 @@ event_fatalities_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(sum_fata
 event_injuries_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(sum_injuries = sum(INJURIES)) %>% arrange(desc(sum_injuries)) %>% head(10)
 ```
 
-### Top 10 Events causing fatalities or injuries
+### Top 10 Events causing fatalities 
 
 ```{r}
-par(mfrow = c(2,1))
-ggplot(event_fatalities_top10) + geom_col(aes(EVENT, sum_fatalities, fill = EVENT))
-ggplot(event_injuries_top10) + geom_col(aes(EVENT, sum_injuries, fill = EVENT))
+print(event_fatalities_top10)
+g<- ggplot(event_fatalities_top10) + geom_col(aes(EVENT, sum_fatalities, fill = EVENT))
+g <- g + theme(axis.text.x = element_text(angle=45, hjust=1))
+print(g)
 ```
 
-It's obvious that Tornado's are most harmfull with respect to population health.
+### Top 10 Events causing injuries
+
+```{r}
+print(event_injuries_top10)
+g<- ggplot(event_injuries_top10) + geom_col(aes(EVENT, sum_injuries, fill = EVENT))
+g <- g + theme(axis.text.x = element_text(angle=45, hjust=1))
+print(g)
+```
+
+It's obvious that Tornado's are most harmfull with respect to population health causing both most fatalities and injuries.
+
 
 ## Across the United States, which types of events have the greatest economic consequences.
 
 ```{r}
-event_crop_damage_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(crop_damage = sum(CROPDAMAGE))  %>% 
+event_crop_damage_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(crop_damage = sum(CROPDAMAGE)/1000000)  %>% 
                     arrange(desc(crop_damage)) %>% head(10) 
 
-event_property_damage_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(property_damage = sum(PROPDAMAGE))  %>% 
+event_property_damage_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(property_damage = sum(PROPDAMAGE)/1000000)  %>% 
                     arrange(desc(property_damage)) %>% head(10) 
 
 
-event_total_damage_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(total_damage = sum(TOTDAMAGE)
-                                                                    , crop_damage = sum(CROPDAMAGE)
-                                                                    , property_damage = sum(PROPDAMAGE))  %>% 
+event_total_damage_top10 <- group_by(sub_storm_data, EVENT) %>% summarise(total_damage = sum(TOTDAMAGE)/1000000
+                                                                    , crop_damage = sum(CROPDAMAGE)/1000000
+                                                                    , property_damage = sum(PROPDAMAGE)/1000000)  %>% 
                     arrange(desc(total_damage)) %>% head(10) 
 
-print(event_crop_damage_top10)
-print(event_property_damage_top10)
-print(event_total_damage_top10)
-    
+
 ```
 
+###Top 10 crop damage
+```{r}
+print(event_crop_damage_top10)
+```
+
+###Top 10 property damage
+```{r}
+print(event_property_damage_top10)
+```
+
+###Top 10 total damage
+```{r}
+print(event_total_damage_top10)
+```
+
+
+###Top 10 total damage in figures
 ```{r}
 event_total_damage <- melt(event_total_damage_top10, id.vars="EVENT")
 g <- ggplot(event_total_damage, aes(x=reorder(EVENT, -value), y=value))
 g <- g + geom_bar(stat="identity", aes(fill=variable), position=position_dodge())
-g <- g + ylab("Damage($)") 
+g <- g + ylab("Damage in millions of Dollars") 
 g <- g + xlab("Event Type") 
 g <- g + theme(axis.text.x = element_text(angle=45, hjust=1))
 g <- g + ggtitle("Top 10 eventypes for economical damage")
@@ -191,5 +216,20 @@ print(g)
 
 ```
 
+We see that total economical damage is greatest for flood, mainly due to property damage.
 
+##Conclusion
 
+1. which types of events are most harmful with respect to population health?
+
+    Tornado's are the events which are most harmful, causing the most fatalities and injuries.
+
+2. which types of events have the greatest economic consequences?
+
+    Flood has the greatest economical consequences, mostly due to porperty damage.
+    For crop damage drougth had the greatest impact.
+    
+    
+    
+    
+--
